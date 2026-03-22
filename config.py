@@ -4,9 +4,11 @@ from datetime import timedelta
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def _normalize_database_url(raw_url: str | None) -> str | None:
-    """Normalize relative SQLite URLs to absolute paths."""
+    """Normalize SQLAlchemy database URLs for local and hosted environments."""
     if not raw_url:
         return None
+    if raw_url.startswith("postgres://"):
+        raw_url = raw_url.replace("postgres://", "postgresql://", 1)
     if raw_url.startswith("sqlite:///"):
         path = raw_url.replace("sqlite:///", "", 1)
         if path and not os.path.isabs(path):
@@ -22,6 +24,13 @@ class Config:
         os.environ.get('DATABASE_URL')
     ) or f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'mobile_shop.db')}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {}
+
+    if SQLALCHEMY_DATABASE_URI.startswith('postgresql://'):
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_pre_ping': True,
+            'pool_recycle': 300,
+        }
     
     # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
@@ -53,6 +62,7 @@ class TestingConfig(Config):
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_ENGINE_OPTIONS = {}
     WTF_CSRF_ENABLED = False
 
 config = {

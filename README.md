@@ -97,6 +97,12 @@ UPLOAD_FOLDER=app/static/uploads
 MAX_CONTENT_LENGTH=16777216
 ```
 
+PostgreSQL example:
+
+```env
+DATABASE_URL=postgresql://username:password@host:5432/database_name
+```
+
 ### 4. Run migrations
 
 ```powershell
@@ -132,6 +138,25 @@ Open:
 ```text
 http://127.0.0.1:5000
 ```
+
+## Render Deployment
+
+The repository includes a [`render.yaml`](render.yaml) blueprint for quick deployment.
+
+Recommended Render settings:
+
+- Build command: `pip install -r requirements.txt && flask db upgrade`
+- Start command: `gunicorn run:app`
+- Required environment variables:
+  - `FLASK_ENV=production`
+  - `SECRET_KEY=<strong-random-value>`
+  - `DATABASE_URL=<your-postgresql-url>`
+
+Free Render note:
+
+- the web service sleeps when idle
+- local file storage is ephemeral
+- use PostgreSQL instead of SQLite for better data persistence on hosted environments
 
 ## Main Modules
 

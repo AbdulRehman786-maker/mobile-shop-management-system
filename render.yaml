@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: ar-mobile-shop
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && flask db upgrade
+    startCommand: gunicorn run:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: UPLOAD_FOLDER
+        value: app/static/uploads
+      - key: MAX_CONTENT_LENGTH
+        value: "16777216"
