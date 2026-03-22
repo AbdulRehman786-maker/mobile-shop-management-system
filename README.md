@@ -2,6 +2,10 @@
 
 Flask-based sales and inventory management system for a mobile shop. The app manages products, customers, suppliers, purchases, sales, stock movement, and dashboard reporting.
 
+## Portfolio Summary
+
+AR Mobile Shop is a modular Flask application built to manage a mobile retail business end to end. It covers sales, purchases, stock tracking, customer records, supplier management, role-based access, and operational reporting in a single system.
+
 ## Highlights
 
 - Role-based authentication for `admin` and `staff`
@@ -49,13 +53,15 @@ Mobileshop/
 |   |-- __init__.py
 |   |-- extensions.py
 |   |-- models.py
+|-- docs/
 |-- migrations/
-|-- instance/
 |-- config.py
 |-- requirements.txt
 |-- run.py
 |-- .env.example
 ```
+
+`instance/` is created locally at runtime for the SQLite database and is intentionally not committed to GitHub.
 
 ## Setup
 
@@ -212,7 +218,6 @@ Before pushing publicly, make sure these are not committed:
 
 - `.env`
 - `instance/`
-- `data_export/`
 - `app/static/uploads/` if they contain private or local-only media
 
 ## Troubleshooting
