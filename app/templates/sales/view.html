@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Sale #{{ sale.id }} - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Sale #{{ sale.id }}</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('sales.invoice', sale_id=sale.id) }}" class="btn btn-secondary">
+            <i class="bi bi-receipt"></i> View Invoice
+        </a>
+        <a href="{{ url_for('sales.generate_pdf', sale_id=sale.id) }}" class="btn btn-success">
+            <i class="bi bi-file-pdf"></i> Download PDF
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Sale Information</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Invoice #:</dt>
+                    <dd class="col-sm-6">{{ sale.id }}</dd>
+
+                    <dt class="col-sm-6">Date:</dt>
+                    <dd class="col-sm-6">{{ sale.sale_date.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+                    <dt class="col-sm-6">Payment Method:</dt>
+                    <dd class="col-sm-6">
+                        <span class="badge bg-info">{{ sale.payment_method }}</span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Parties</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Customer:</dt>
+                    <dd class="col-sm-6">
+                        <a href="{{ url_for('customers.view_customer', customer_id=sale.customer.id) }}">
+                            {{ sale.customer.name }}
+                        </a>
+                    </dd>
+
+                    <dt class="col-sm-6">Staff:</dt>
+                    <dd class="col-sm-6">{{ sale.staff.name }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">Items</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sale.sale_items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('products.view_product', product_id=item.product.id) }}">
+                                {{ item.product.name }}
+                            </a>
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.price_cents | money }}</td>
+                        <td>${{ item.subtotal_cents | money }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 offset-md-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal:</span>
+                    <strong>${{ sale.sale_items|map(attribute='subtotal_cents')|sum | money }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Discount:</span>
+                    <strong>-${{ sale.discount_cents | money }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Tax:</span>
+                    <strong>+${{ sale.tax_cents | money }}</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="h5">Total:</span>
+                    <strong class="h5">${{ sale.total_amount_cents | money }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if sale.notes %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h6 class="mb-0">Notes</h6>
+        </div>
+        <div class="card-body">
+            {{ sale.notes }}
+        </div>
+    </div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{{ url_for('sales.list_sales') }}" class="btn btn-outline-secondary btn-back">
+        <i class="bi bi-arrow-left"></i> Back to Sales
+    </a>
+</div>
+{% endblock %}

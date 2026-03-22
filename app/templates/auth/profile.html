@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h3 class="card-title mb-4">User Profile</h3>
+
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" value="{{ user.name }}" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" value="{{ user.email }}" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <input type="text" class="form-control" value="{{ user.role.upper() }}" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Member Since</label>
+                        <input type="text" class="form-control" value="{{ user.created_at.strftime('%B %d, %Y') }}" disabled>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('auth.change_password') }}" class="btn btn-primary">
+                            <i class="bi bi-key"></i> Change Password
+                        </a>
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary btn-back">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

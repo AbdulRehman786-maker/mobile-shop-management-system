@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Products - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2>Products</h2>
+    </div>
+    <div class="col-md-6 text-end">
+        {% if current_user.is_staff() %}
+            <a href="{{ url_for('products.export_products_csv', search=search, category=category, brand=brand, model=model) }}" class="btn btn-outline-success me-2">
+                <i class="bi bi-download"></i> Export CSV
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Search by name, brand, or barcode..." value="{{ search }}">
+            </div>
+            <div class="col-md-2">
+                <select name="category" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Categories</option>
+                    <option value="mobile" {% if category == 'mobile' %}selected{% endif %}>Mobile Phone</option>
+                    <option value="accessory" {% if category == 'accessory' %}selected{% endif %}>Accessory</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="brand" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Brands</option>
+                    {% for b in brand_options %}
+                        <option value="{{ b }}" {% if brand == b %}selected{% endif %}>{{ b }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if brand or category %}
+            <div class="col-md-2">
+                <select name="model" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Models</option>
+                    {% for m in model_options %}
+                        <option value="{{ m }}" {% if model == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="col-md-{% if brand %}1{% else %}3{% endif %}">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if current_user.is_admin() %}
+<div class="card mb-4">
+    <div class="card-body">
+        <h6 class="mb-3">Pending Purchased Items (Not Added to Products Yet)</h6>
+        {% if pending_products %}
+            <form method="POST" action="{{ url_for('products.add_from_purchase') }}" class="row g-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="col-md-7">
+                    <select id="pendingProductSelect" name="product_id" class="form-select" required>
+                        <option value="">Select pending item...</option>
+                        {% for p in pending_products %}
+                            <option value="{{ p.id }}" data-stock="{{ p.stock_quantity }}">
+                                {{ p.name }} ({{ p.brand }} {{ p.model }}) | Stock: {{ p.stock_quantity }} | Purchased: {{ p.first_purchased_at.strftime('%Y-%m-%d %H:%M') if p.first_purchased_at else '-' }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input id="pendingQtyInput" type="number" name="quantity_to_add" class="form-control" min="1" value="1" required>
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button type="submit" class="btn btn-primary">Add to Products</button>
+                </div>
+            </form>
+            <small id="pendingQtyHelp" class="text-muted d-block mt-2">Select item to set max quantity.</small>
+        {% else %}
+            <p class="text-muted mb-0">No pending purchased items.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Product Name</th>
+                    <th>Brand</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Barcode</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('products.view_product', product_id=product.id) }}">
+                                {{ product.name }}
+                            </a>
+                        </td>
+                        <td>{{ product.brand }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ product.category }}</span>
+                        </td>
+                        <td>${{ product.price_cents | money }}</td>
+                        <td>
+                            {% if product.stock_quantity == 0 %}
+                                <span class="badge bg-danger">Out of Stock</span>
+                            {% elif product.stock_quantity <= 10 %}
+                                <span class="badge bg-warning">{{ product.stock_quantity }}</span>
+                            {% else %}
+                                <span class="badge bg-success">{{ product.stock_quantity }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ product.barcode or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('products.view_product', product_id=product.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if current_user.is_admin() %}
+                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteProduct({{ product.id }})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No products found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if products.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if products.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('products.list_products', page=products.prev_num, search=search, category=category, brand=brand, model=model) }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for page_num in products.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == products.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('products.list_products', page=page_num, search=search, category=category, brand=brand, model=model) }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if products.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('products.list_products', page=products.next_num, search=search, category=category, brand=brand, model=model) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+<script>
+    const deleteProductUrlTemplate = '{{ url_for("products.delete_product", product_id=0) }}';
+    const pendingSelect = document.getElementById('pendingProductSelect');
+    const pendingQty = document.getElementById('pendingQtyInput');
+    const pendingHelp = document.getElementById('pendingQtyHelp');
+
+    if (pendingSelect && pendingQty && pendingHelp) {
+        pendingSelect.addEventListener('change', function() {
+            const selected = pendingSelect.options[pendingSelect.selectedIndex];
+            const stock = parseInt(selected?.dataset?.stock || '0');
+            if (stock > 0) {
+                pendingQty.max = String(stock);
+                if (parseInt(pendingQty.value || '1') > stock) {
+                    pendingQty.value = String(stock);
+                }
+                pendingHelp.textContent = `Available pending stock: ${stock}`;
+            } else {
+                pendingQty.removeAttribute('max');
+                pendingHelp.textContent = 'Select item to set max quantity.';
+            }
+        });
+    }
+
+    async function deleteProduct(productId) {
+        const confirmed = await confirmAction({
+            title: 'Delete product?',
+            text: 'This product record will be permanently removed.',
+            confirmText: 'Yes, delete it',
+            cancelText: 'No, cancel',
+            icon: 'warning'
+        });
+        if (!confirmed) {
+            showNotification('Deletion cancelled.', 'info');
+            return;
+        }
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deleteProductUrlTemplate.replace('/0/delete', `/${productId}/delete`);
+        appendCsrfToken(form);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Sales - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Sales</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('sales.export_sales_csv', start_date=start_date, end_date=end_date) }}" class="btn btn-outline-success me-2">
+            <i class="bi bi-download"></i> Download CSV
+        </a>
+        <a href="{{ url_for('sales.create_sale') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Sale
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Staff</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales.items %}
+                    <tr>
+                        <td><strong>#{{ sale.id }}</strong></td>
+                        <td>{{ sale.sale_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ sale.customer.name }}</td>
+                        <td>{{ sale.staff.name }}</td>
+                        <td>{{ sale.sale_items|length }}</td>
+                        <td>${{ sale.total_amount_cents | money }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ sale.payment_method }}</span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('sales.view_sale', sale_id=sale.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('sales.invoice', sale_id=sale.id) }}" class="btn btn-sm btn-secondary">
+                                <i class="bi bi-receipt"></i>
+                            </a>
+                            <a href="{{ url_for('sales.generate_pdf', sale_id=sale.id) }}" class="btn btn-sm btn-success">
+                                <i class="bi bi-file-pdf"></i>
+                            </a>
+                            {% if current_user.is_admin() %}
+                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteSale({{ sale.id }})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">No sales found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if sales.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if sales.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('sales.list_sales', page=sales.prev_num, start_date=start_date, end_date=end_date) }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for page_num in sales.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == sales.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('sales.list_sales', page=page_num, start_date=start_date, end_date=end_date) }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if sales.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('sales.list_sales', page=sales.next_num, start_date=start_date, end_date=end_date) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+<script>
+    const deleteSaleUrlTemplate = '{{ url_for("sales.delete_sale", sale_id=0) }}';
+
+    async function deleteSale(saleId) {
+        const confirmed = await confirmAction({
+            title: 'Delete sale?',
+            text: 'This action will restore stock and remove the sale record.',
+            confirmText: 'Yes, delete it',
+            cancelText: 'No, keep it',
+            icon: 'warning'
+        });
+        if (confirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = deleteSaleUrlTemplate.replace('/0/delete', `/${saleId}/delete`);
+            appendCsrfToken(form);
+            document.body.appendChild(form);
+            form.submit();
+        } else {
+            showNotification('Deletion cancelled.', 'info');
+        }
+    }
+</script>
+{% endblock %}

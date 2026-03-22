@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Purchase #{{ purchase.id }} - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Purchase Order #{{ purchase.id }}</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('purchases.edit_purchase', purchase_id=purchase.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Purchase Information</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">PO #:</dt>
+                    <dd class="col-sm-6">{{ purchase.id }}</dd>
+
+                    <dt class="col-sm-6">Date:</dt>
+                    <dd class="col-sm-6">{{ purchase.purchase_date.strftime('%Y-%m-%d') }}</dd>
+
+                    <dt class="col-sm-6">Payment Status:</dt>
+                    <dd class="col-sm-6">
+                        {% if purchase.payment_status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% elif purchase.payment_status == 'paid' %}
+                            <span class="badge bg-success">Paid</span>
+                        {% else %}
+                            <span class="badge bg-info">Partial</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Supplier</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Name:</dt>
+                    <dd class="col-sm-6">{{ purchase.supplier.name }}</dd>
+
+                    <dt class="col-sm-6">Company:</dt>
+                    <dd class="col-sm-6">{{ purchase.supplier.company }}</dd>
+
+                    <dt class="col-sm-6">Phone:</dt>
+                    <dd class="col-sm-6">{{ purchase.supplier.phone }}</dd>
+
+                    <dt class="col-sm-6">Email:</dt>
+                    <dd class="col-sm-6">{{ purchase.supplier.email or '-' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0">Items</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th>Catalog Status</th>
+                    <th>Purchased At</th>
+                    <th>Added To Products</th>
+                    <th>Quantity</th>
+                    <th>Cost Price</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in purchase.purchase_items %}
+                    <tr>
+                        <td>
+                            {% if item.product.is_listed %}
+                                <a href="{{ url_for('products.view_product', product_id=item.product.id) }}">
+                                    {{ item.product.name }}
+                                </a>
+                            {% else %}
+                                {{ item.product.name }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.product.is_listed %}
+                                <span class="badge bg-success">Added</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.product.first_purchased_at.strftime('%Y-%m-%d %H:%M') if item.product.first_purchased_at else '-' }}</td>
+                        <td>{{ item.product.listed_at.strftime('%Y-%m-%d %H:%M') if item.product.listed_at else '-' }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.cost_price_cents | money }}</td>
+                        <td>${{ item.subtotal_cents | money }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 offset-md-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <span class="h5">Total Amount:</span>
+                    <strong class="h5">${{ purchase.total_amount_cents | money }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if purchase.notes %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h6 class="mb-0">Notes</h6>
+        </div>
+        <div class="card-body">
+            {{ purchase.notes }}
+        </div>
+    </div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{{ url_for('purchases.list_purchases') }}" class="btn btn-outline-secondary btn-back">
+        <i class="bi bi-arrow-left"></i> Back to Purchases
+    </a>
+</div>
+{% endblock %}

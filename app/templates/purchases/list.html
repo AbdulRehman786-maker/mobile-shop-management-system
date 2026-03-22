@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}Purchases - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Purchases</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="#purchasesTable" class="btn btn-outline-secondary btn-back me-2">
+            <i class="bi bi-list"></i> View Purchases Table
+        </a>
+        <a href="{{ url_for('purchases.create_purchase') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Purchase
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="paid" {% if status == 'paid' %}selected{% endif %}>Paid</option>
+                    <option value="partial" {% if status == 'partial' %}selected{% endif %}>Partial</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Product Stock Summary</h5>
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#stockSummary" aria-expanded="false" aria-controls="stockSummary">
+            <i class="bi bi-chevron-down"></i> Show/Hide
+        </button>
+    </div>
+    <div id="stockSummary" class="collapse">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th>Brand</th>
+                        <th>Model</th>
+                        <th>Category</th>
+                        <th>Total Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in product_stocks %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.brand }}</td>
+                            <td>{{ product.model }}</td>
+                            <td>{{ product.category }}</td>
+                            <td>
+                                {% if product.stock_quantity <= 0 %}
+                                    <span class="badge bg-danger">0</span>
+                                {% elif product.stock_quantity <= 10 %}
+                                    <span class="badge bg-warning text-dark">{{ product.stock_quantity }}</span>
+                                {% else %}
+                                    <span class="badge bg-success">{{ product.stock_quantity }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No products available</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card" id="purchasesTable">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>PO #</th>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Catalog</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for purchase in purchases.items %}
+                    <tr>
+                        <td><strong>#{{ purchase.id }}</strong></td>
+                        <td>{{ purchase.purchase_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ purchase.supplier.name }}</td>
+                        <td>{{ purchase.purchase_items|length }}</td>
+                        <td>${{ purchase.total_amount_cents | money }}</td>
+                        <td>
+                            {% set pending_count = purchase.purchase_items | selectattr('product.is_listed', 'equalto', False) | list | length %}
+                            {% if pending_count > 0 %}
+                                <span class="badge bg-warning text-dark">Pending ({{ pending_count }})</span>
+                            {% else %}
+                                <span class="badge bg-success">Added</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if purchase.payment_status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif purchase.payment_status == 'paid' %}
+                                <span class="badge bg-success">Paid</span>
+                            {% else %}
+                                <span class="badge bg-info">Partial</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('purchases.view_purchase', purchase_id=purchase.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('purchases.edit_purchase', purchase_id=purchase.id) }}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deletePurchase({{ purchase.id }})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">No purchases found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if purchases.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if purchases.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('purchases.list_purchases', page=purchases.prev_num, start_date=start_date, end_date=end_date, status=status) }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for page_num in purchases.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == purchases.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('purchases.list_purchases', page=page_num, start_date=start_date, end_date=end_date, status=status) }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if purchases.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('purchases.list_purchases', page=purchases.next_num, start_date=start_date, end_date=end_date, status=status) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+<script>
+    const deletePurchaseUrlTemplate = '{{ url_for("purchases.delete_purchase", purchase_id=0) }}';
+
+    async function deletePurchase(purchaseId) {
+        const confirmed = await confirmAction({
+            title: 'Delete purchase?',
+            text: 'This action will reduce stock and remove this purchase record.',
+            confirmText: 'Yes, delete it',
+            cancelText: 'No, cancel',
+            icon: 'warning'
+        });
+        if (!confirmed) {
+            showNotification('Deletion cancelled.', 'info');
+            return;
+        }
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deletePurchaseUrlTemplate.replace('/0/delete', `/${purchaseId}/delete`);
+        appendCsrfToken(form);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
+{% endblock %}

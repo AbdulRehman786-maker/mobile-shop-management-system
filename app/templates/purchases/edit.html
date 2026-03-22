@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Purchase #{{ purchase.id }} - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Edit Purchase #{{ purchase.id }}</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Purchase Details</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Supplier</label>
+                        <input type="text" class="form-control" value="{{ purchase.supplier.name }} ({{ purchase.supplier.company }})" disabled>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Status</label>
+                        <select name="payment_status" class="form-select">
+                            <option value="pending" {% if purchase.payment_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="paid" {% if purchase.payment_status == 'paid' %}selected{% endif %}>Paid</option>
+                            <option value="partial" {% if purchase.payment_status == 'partial' %}selected{% endif %}>Partial</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="4">{{ purchase.notes or '' }}</textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Update Purchase</button>
+                        <a href="{{ url_for('purchases.view_purchase', purchase_id=purchase.id) }}" class="btn btn-outline-secondary btn-back">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

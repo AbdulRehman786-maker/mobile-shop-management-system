@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AR Mobile Shop{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="mb-1">Dashboard</h2>
+        <p class="text-muted mb-0">Overview of sales, customers, suppliers, and stock status.</p>
+    </div>
+    <a href="{{ url_for('sales.create_sale') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> New Sale
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-2">Total Sales Revenue</p>
+                <h3 class="mb-0">${{ "%.2f"|format((total_sales_cents or 0) / 100) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-2">Products Sold</p>
+                <h3 class="mb-0">{{ products_sold }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-2">Active Customers</p>
+                <h3 class="mb-0">{{ total_customers }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-2">Active Suppliers</p>
+                <h3 class="mb-0">{{ total_suppliers }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-2">Revenue Today</p>
+                <h3 class="mb-0">${{ "%.2f"|format((day_revenue_cents or 0) / 100) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-2">Revenue This Month</p>
+                <h3 class="mb-0">${{ "%.2f"|format((month_revenue_cents or 0) / 100) }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Low Stock Products</h5>
+            </div>
+            <div class="card-body">
+                {% if low_stock_products %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th class="text-end">Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in low_stock_products[:8] %}
+                                <tr>
+                                    <td>{{ product.name }}</td>
+                                    <td class="text-capitalize">{{ product.category }}</td>
+                                    <td class="text-end">
+                                        <span class="badge {% if product.stock_quantity == 0 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                            {{ product.stock_quantity }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No low stock products right now.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Recent Sales</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_sales %}
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Invoice</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in recent_sales %}
+                                <tr>
+                                    <td>#{{ sale.id }}</td>
+                                    <td>{{ sale.customer.name }}</td>
+                                    <td>{{ sale.sale_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td class="text-end">${{ "%.2f"|format((sale.total_amount_cents or 0) / 100) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No sales recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Daily Sales Chart</h5>
+        <span class="text-muted small">Last 30 days</span>
+    </div>
+    <div class="card-body">
+        <canvas id="salesChart" height="110"></canvas>
+        <div id="salesChartFallback" class="text-muted small d-none mt-2">
+            Sales chart is unavailable right now.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    fetch('{{ url_for("dashboard.sales_chart") }}?days=30')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load sales chart');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const chartElement = document.getElementById('salesChart');
+            if (!chartElement || !window.Chart) {
+                document.getElementById('salesChartFallback').classList.remove('d-none');
+                return;
+            }
+
+            const ctx = chartElement.getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Daily Revenue',
+                        data: data.data,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.12)',
+                        fill: true,
+                        tension: 0.25
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + Number(value).toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(() => {
+            document.getElementById('salesChartFallback').classList.remove('d-none');
+        });
+</script>
+{% endblock %}

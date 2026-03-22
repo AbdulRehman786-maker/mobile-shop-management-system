@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}{{ customer.name }} - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>{{ customer.name }}</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Contact Information</h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Name:</dt>
+                    <dd class="col-sm-6">{{ customer.name }}</dd>
+
+                    <dt class="col-sm-6">Phone:</dt>
+                    <dd class="col-sm-6">{{ customer.phone }}</dd>
+
+                    <dt class="col-sm-6">Email:</dt>
+                    <dd class="col-sm-6">{{ customer.email or '-' }}</dd>
+
+                    <dt class="col-sm-6">Address:</dt>
+                    <dd class="col-sm-6">{{ customer.address or '-' }}</dd>
+
+                    <dt class="col-sm-6">City:</dt>
+                    <dd class="col-sm-6">{{ customer.city or '-' }}</dd>
+
+                    <dt class="col-sm-6">State:</dt>
+                    <dd class="col-sm-6">{{ customer.state or '-' }}</dd>
+
+                    <dt class="col-sm-6">Postal Code:</dt>
+                    <dd class="col-sm-6">{{ customer.postal_code or '-' }}</dd>
+
+                    <dt class="col-sm-6">Member Since:</dt>
+                    <dd class="col-sm-6">{{ customer.created_at.strftime('%B %d, %Y') }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Purchase Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Total Purchases</p>
+                    <h3>{{ sales|length }}</h3>
+                </div>
+                <div class="mb-3">
+                    <p class="text-muted mb-1">Total Spent</p>
+                    <h3>${{ total_spent_cents | money }}</h3>
+                </div>
+                <div class="mb-0">
+                    <p class="text-muted mb-1">Average Purchase</p>
+                    <h3>
+                        {% if sales %}
+                            ${{ average_spent_cents | money }}
+                        {% else %}
+                            $0.00
+                        {% endif %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h6 class="mb-0">Purchase History</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                    <tr>
+                        <td><strong>#{{ sale.id }}</strong></td>
+                        <td>{{ sale.sale_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ sale.sale_items|length }}</td>
+                        <td>${{ sale.total_amount_cents | money }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ sale.payment_method }}</span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('sales.view_sale', sale_id=sale.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('sales.invoice', sale_id=sale.id) }}" class="btn btn-sm btn-secondary">
+                                <i class="bi bi-receipt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No purchase history</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('customers.list_customers') }}" class="btn btn-outline-secondary btn-back">
+        <i class="bi bi-arrow-left"></i> Back to Customers
+    </a>
+</div>
+{% endblock %}

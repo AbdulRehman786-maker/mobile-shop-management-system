@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>{{ product.name }}</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            {% if product.image %}
+                <img src="{{ url_for('static', filename='uploads/' + product.image) }}" class="card-img-top" alt="{{ product.name }}">
+            {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 300px;">
+                    <i class="bi bi-image" style="font-size: 3rem; color: #ccc;"></i>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">Product Details</h5>
+                <dl class="row">
+                    <dt class="col-sm-6">Brand:</dt>
+                    <dd class="col-sm-6">{{ product.brand }}</dd>
+
+                    <dt class="col-sm-6">Model:</dt>
+                    <dd class="col-sm-6">{{ product.model }}</dd>
+
+                    <dt class="col-sm-6">Category:</dt>
+                    <dd class="col-sm-6">
+                        <span class="badge bg-info">{{ product.category }}</span>
+                    </dd>
+
+                    <dt class="col-sm-6">Barcode:</dt>
+                    <dd class="col-sm-6">{{ product.barcode or '-' }}</dd>
+
+                    <dt class="col-sm-6">IMEI:</dt>
+                    <dd class="col-sm-6">{{ product.imei or '-' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Pricing</h6>
+                        <dl class="row">
+                            <dt class="col-sm-6">Cost Price:</dt>
+                            <dd class="col-sm-6">${{ product.cost_price_cents | money }}</dd>
+
+                            <dt class="col-sm-6">Selling Price:</dt>
+                            <dd class="col-sm-6">${{ product.price_cents | money }}</dd>
+
+                            <dt class="col-sm-6">Profit Margin:</dt>
+                            <dd class="col-sm-6">
+                                {% set margin = ((product.price_cents - product.cost_price_cents) / product.cost_price_cents * 100) if product.cost_price_cents > 0 else 0 %}
+                                {{ "%.1f"|format(margin) }}%
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">Inventory</h6>
+                        <dl class="row">
+                            <dt class="col-sm-6">Stock Quantity:</dt>
+                            <dd class="col-sm-6">
+                                {% if product.stock_quantity == 0 %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                {% elif product.stock_quantity <= 10 %}
+                                    <span class="badge bg-warning">{{ product.stock_quantity }}</span>
+                                {% else %}
+                                    <span class="badge bg-success">{{ product.stock_quantity }}</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-6">Stock Value:</dt>
+                            <dd class="col-sm-6">${{ (product.stock_quantity * product.cost_price_cents) | money }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if product.description %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Description</h6>
+                    <p>{{ product.description }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Inventory History</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Quantity</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                            <tr>
+                                <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ log.change_type }}</span>
+                                </td>
+                                <td>
+                                    {% if log.quantity > 0 %}
+                                        <span class="text-success">+{{ log.quantity }}</span>
+                                    {% else %}
+                                        <span class="text-danger">{{ log.quantity }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.notes or '-' }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">No inventory logs</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('products.list_products') }}" class="btn btn-outline-secondary btn-back">
+        <i class="bi bi-arrow-left"></i> Back to Products
+    </a>
+</div>
+{% endblock %}

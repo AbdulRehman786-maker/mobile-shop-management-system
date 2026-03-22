@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Customers</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('customers.add_customer') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Customer
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="search" class="form-control" placeholder="Search by name, phone, or email..." value="{{ search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>City</th>
+                    <th>Added</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('customers.view_customer', customer_id=customer.id) }}">
+                                {{ customer.name }}
+                            </a>
+                        </td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.email or '-' }}</td>
+                        <td>{{ customer.city or '-' }}</td>
+                        <td>{{ customer.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a href="{{ url_for('customers.view_customer', customer_id=customer.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('customers.edit_customer', customer_id=customer.id) }}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteCustomer({{ customer.id }})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No customers found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if customers.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if customers.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('customers.list_customers', page=customers.prev_num, search=search) }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for page_num in customers.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == customers.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('customers.list_customers', page=page_num, search=search) }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if customers.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('customers.list_customers', page=customers.next_num, search=search) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+<script>
+    const deleteCustomerUrlTemplate = '{{ url_for("customers.delete_customer", customer_id=0) }}';
+
+    async function deleteCustomer(customerId) {
+        const confirmed = await confirmAction({
+            title: 'Delete customer?',
+            text: 'This customer record will be permanently removed.',
+            confirmText: 'Yes, delete it',
+            cancelText: 'No, cancel',
+            icon: 'warning'
+        });
+        if (!confirmed) {
+            showNotification('Deletion cancelled.', 'info');
+            return;
+        }
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deleteCustomerUrlTemplate.replace('/0/delete', `/${customerId}/delete`);
+        appendCsrfToken(form);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
+{% endblock %}

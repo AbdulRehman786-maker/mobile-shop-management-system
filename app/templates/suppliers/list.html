@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Suppliers - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2>Suppliers</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{{ url_for('suppliers.add_supplier') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Supplier
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="search" class="form-control" placeholder="Search by name, company, phone, or email..." value="{{ search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Added</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for supplier in suppliers.items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('suppliers.view_supplier', supplier_id=supplier.id) }}">
+                                {{ supplier.name }}
+                            </a>
+                        </td>
+                        <td>{{ supplier.company }}</td>
+                        <td>{{ supplier.phone }}</td>
+                        <td>{{ supplier.email or '-' }}</td>
+                        <td>{{ supplier.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a href="{{ url_for('suppliers.view_supplier', supplier_id=supplier.id) }}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('suppliers.edit_supplier', supplier_id=supplier.id) }}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteSupplier({{ supplier.id }})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No suppliers found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if suppliers.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if suppliers.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('suppliers.list_suppliers', page=suppliers.prev_num, search=search) }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for page_num in suppliers.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == suppliers.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('suppliers.list_suppliers', page=page_num, search=search) }}">{{ page_num }}</a>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if suppliers.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('suppliers.list_suppliers', page=suppliers.next_num, search=search) }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+<script>
+    const deleteSupplierUrlTemplate = '{{ url_for("suppliers.delete_supplier", supplier_id=0) }}';
+
+    async function deleteSupplier(supplierId) {
+        const confirmed = await confirmAction({
+            title: 'Delete supplier?',
+            text: 'This supplier record will be permanently removed.',
+            confirmText: 'Yes, delete it',
+            cancelText: 'No, cancel',
+            icon: 'warning'
+        });
+        if (!confirmed) {
+            showNotification('Deletion cancelled.', 'info');
+            return;
+        }
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deleteSupplierUrlTemplate.replace('/0/delete', `/${supplierId}/delete`);
+        appendCsrfToken(form);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
+{% endblock %}

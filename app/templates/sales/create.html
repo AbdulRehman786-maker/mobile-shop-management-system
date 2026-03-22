@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Create Sale - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Create New Sale</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Sale Details</h5>
+            </div>
+            <div class="card-body">
+                <form id="saleForm">
+                    <div class="mb-3">
+                        <label class="form-label">Customer *</label>
+                        <select id="customerId" class="form-select" required>
+                            <option value="">Select a customer...</option>
+                            {% for customer in customers %}
+                                <option value="{{ customer.id }}">{{ customer.name }} ({{ customer.phone }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Add Product *</label>
+                        <div class="input-group">
+                            <input type="text" id="productSearch" class="form-control" list="productOptions" placeholder="Search by product name, brand, model, or barcode..." autocomplete="off">
+                            <button class="btn btn-outline-secondary" type="button" id="addProductBtn">Add</button>
+                        </div>
+                        <datalist id="productOptions"></datalist>
+                    </div>
+
+                    <div id="saleItems" class="mb-3">
+                        <h6>Sale Items</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Qty</th>
+                                        <th>Subtotal</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsList">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">No items added</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 offset-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Discount ($)</label>
+                                <input type="number" id="discount" class="form-control" value="0" step="0.01" min="0">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Tax ($)</label>
+                                <input type="number" id="tax" class="form-control" value="0" step="0.01" min="0">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Payment Method</label>
+                                <select id="paymentMethod" class="form-select">
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="check">Check</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Notes</label>
+                                <textarea id="notes" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong id="subtotal">$0.00</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Discount:</span>
+                        <strong id="discountDisplay">-$0.00</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax:</span>
+                        <strong id="taxDisplay">+$0.00</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <span class="h5">Total:</span>
+                        <strong class="h5" id="total">$0.00</strong>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success btn-lg" onclick="completeSale()">
+                        <i class="bi bi-check-circle"></i> Complete Sale
+                    </button>
+                    <a href="{{ url_for('sales.list_sales') }}" class="btn btn-outline-secondary btn-back">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let items = [];
+    const apiToken = "{{ api_token }}";
+    const csrfToken = getCsrfToken();
+    const searchableProducts = {{ searchable_products | tojson }};
+    const productOptions = document.getElementById('productOptions');
+    const productSearchInput = document.getElementById('productSearch');
+
+    searchableProducts.forEach(product => {
+        const brandModel = `${product.brand} ${product.model}`.trim();
+        const minPrice = Number(product.min_price ?? product.price);
+        const maxPrice = Number(product.max_price ?? product.price);
+        const priceLabel = minPrice === maxPrice
+            ? `$${minPrice.toFixed(2)}`
+            : `$${minPrice.toFixed(2)} - $${maxPrice.toFixed(2)}`;
+        product.display = brandModel
+            ? `${product.name} (${brandModel}) - ${priceLabel} | Stock: ${product.stock}`
+            : `${product.name} - ${priceLabel} | Stock: ${product.stock}`;
+    });
+
+    function renderProductOptions(query = '') {
+        const normalizedQuery = (query || '').trim().toLowerCase();
+        const filtered = searchableProducts
+            .filter(product => {
+                if (!normalizedQuery) return true;
+                return (
+                    product.name.toLowerCase().includes(normalizedQuery) ||
+                    product.brand.toLowerCase().includes(normalizedQuery) ||
+                    product.model.toLowerCase().includes(normalizedQuery) ||
+                    product.barcode.toLowerCase().includes(normalizedQuery)
+                );
+            })
+            .slice(0, 50);
+
+        productOptions.innerHTML = '';
+        filtered.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.display;
+            productOptions.appendChild(option);
+        });
+    }
+
+    function resolveSelectedProduct(rawValue) {
+        const normalized = (rawValue || '').trim().toLowerCase();
+        if (!normalized) return null;
+        return searchableProducts.find(product => product.display.toLowerCase() === normalized)
+            || searchableProducts.find(product => product.name.toLowerCase() === normalized)
+            || searchableProducts.find(product => product.display.toLowerCase().includes(normalized));
+    }
+
+    productSearchInput.addEventListener('focus', function() {
+        renderProductOptions(this.value);
+    });
+
+    productSearchInput.addEventListener('input', function() {
+        const currentValue = this.value.trim();
+        renderProductOptions(currentValue);
+        const matchedProduct = resolveSelectedProduct(currentValue);
+        if (matchedProduct && matchedProduct.display.toLowerCase() === currentValue.toLowerCase()) {
+            addItem(matchedProduct);
+        }
+    });
+
+    productSearchInput.addEventListener('change', function() {
+        const matchedProduct = resolveSelectedProduct(this.value);
+        if (matchedProduct) {
+            addItem(matchedProduct);
+        }
+    });
+
+    productSearchInput.addEventListener('keydown', function(event) {
+        if (event.key !== 'Enter') {
+            return;
+        }
+        event.preventDefault();
+        const matchedProduct = resolveSelectedProduct(this.value);
+        if (!matchedProduct) {
+            showNotification('Please select a valid product from the suggestions.', 'warning');
+            return;
+        }
+        addItem(matchedProduct);
+    });
+
+    document.getElementById('addProductBtn').addEventListener('click', function() {
+        const matchedProduct = resolveSelectedProduct(productSearchInput.value);
+        if (!matchedProduct) {
+            showNotification('Please select a valid product from the suggestions.', 'warning');
+            return;
+        }
+        addItem(matchedProduct);
+    });
+
+    function addItem(product) {
+        if (product.stock <= 0) {
+            showNotification('Product is out of stock.', 'warning');
+            return;
+        }
+
+        const existing = items.find(i => i.id === product.id);
+        if (existing) {
+            existing.quantity++;
+        } else {
+            items.push({
+                id: product.primary_id || product.id,
+                primary_id: product.primary_id || product.id,
+                name: product.name,
+                price: product.price,
+                quantity: 1,
+                stock: product.stock,
+                source_ids: product.source_ids || [product.id]
+            });
+        }
+
+        document.getElementById('productSearch').value = '';
+        renderProductOptions('');
+        renderItems();
+    }
+
+    function removeItem(productId) {
+        items = items.filter(i => i.id !== productId);
+        renderItems();
+    }
+
+    function updateQuantity(productId, qty) {
+        const item = items.find(i => i.id === productId);
+        if (item) {
+            item.quantity = Math.max(1, Math.min(qty, item.stock));
+            renderItems();
+        }
+    }
+
+    function renderItems() {
+        const tbody = document.getElementById('itemsList');
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No items added</td></tr>';
+        } else {
+            tbody.innerHTML = items.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" style="width: 60px;" 
+                               value="${item.quantity}" min="1" max="${item.stock}"
+                               onchange="updateQuantity(${item.id}, this.value)">
+                    </td>
+                    <td>$${(item.price * item.quantity).toFixed(2)}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(${item.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        updateTotals();
+    }
+
+    function updateTotals() {
+        const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const tax = parseFloat(document.getElementById('tax').value) || 0;
+        const total = subtotal - discount + tax;
+
+        document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+        document.getElementById('discountDisplay').textContent = '-$' + discount.toFixed(2);
+        document.getElementById('taxDisplay').textContent = '+$' + tax.toFixed(2);
+        document.getElementById('total').textContent = '$' + total.toFixed(2);
+    }
+
+    document.getElementById('discount').addEventListener('change', updateTotals);
+    document.getElementById('tax').addEventListener('change', updateTotals);
+
+    function completeSale() {
+        const customerId = document.getElementById('customerId').value;
+        if (!customerId) {
+            showNotification('Please select a customer.', 'warning');
+            return;
+        }
+        if (items.length === 0) {
+            showNotification('Please add at least one item.', 'warning');
+            return;
+        }
+
+        const saleData = {
+            customer_id: parseInt(customerId),
+            items: items.map(item => ({
+                product_id: item.id,
+                primary_id: item.primary_id || item.id,
+                source_ids: item.source_ids || [item.id],
+                quantity: item.quantity,
+                price: item.price
+            })),
+            discount: parseFloat(document.getElementById('discount').value) || 0,
+            tax: parseFloat(document.getElementById('tax').value) || 0,
+            payment_method: document.getElementById('paymentMethod').value,
+            notes: document.getElementById('notes').value
+        };
+
+        fetch('{{ url_for("sales.create_sale") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Token': apiToken,
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(saleData)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                showNotification('Error: ' + data.error, 'error');
+            } else {
+                window.location.href = data.redirect;
+            }
+        })
+        .catch(e => showNotification('Error: ' + e, 'error'));
+    }
+</script>
+{% endblock %}

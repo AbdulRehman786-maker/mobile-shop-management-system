@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - AR Mobile Shop{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Reports & Analytics</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Monthly Revenue</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top Selling Products</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="topProductsChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Stock Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6>Total Stock Value</h6>
+                                <h4 id="stockValue">$0.00</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6>Low Stock Items</h6>
+                                <h4 id="lowStock">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6>Out of Stock</h6>
+                                <h4 id="outOfStock">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6>Total Products</h6>
+                                <h4 id="totalProducts">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <canvas id="stockChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load revenue chart
+    fetch('{{ url_for("dashboard.revenue_chart") }}?months=12')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load revenue chart');
+            return response.json();
+        })
+        .then(data => {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Monthly Revenue',
+                        data: data.data,
+                        backgroundColor: '#28a745'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(() => {
+            document.getElementById('revenueChart').parentElement.innerHTML =
+                '<p class="text-muted mb-0">Revenue chart is unavailable right now.</p>';
+        });
+
+    // Load top products chart
+    fetch('{{ url_for("dashboard.top_products") }}?limit=10')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load top products');
+            return response.json();
+        })
+        .then(data => {
+            const ctx = document.getElementById('topProductsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.names,
+                    datasets: [{
+                        data: data.quantities,
+                        backgroundColor: [
+                            '#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8',
+                            '#6f42c1', '#e83e8c', '#fd7e14', '#20c997', '#6c757d'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        })
+        .catch(() => {
+            document.getElementById('topProductsChart').parentElement.innerHTML =
+                '<p class="text-muted mb-0">Top products chart is unavailable right now.</p>';
+        });
+
+    // Load stock overview
+    fetch('{{ url_for("dashboard.stock_overview") }}')
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load stock overview');
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('stockValue').textContent = '$' + data.total_stock_value.toFixed(2);
+            document.getElementById('lowStock').textContent = data.low_stock;
+            document.getElementById('outOfStock').textContent = data.out_of_stock;
+            document.getElementById('totalProducts').textContent = data.categories.reduce((a, b, i) => a + data.counts[i], 0);
+
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.categories,
+                    datasets: [{
+                        label: 'Stock Quantity',
+                        data: data.quantities,
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(() => {
+            document.getElementById('stockChart').parentElement.innerHTML =
+                '<p class="text-muted mb-0">Stock overview is unavailable right now.</p>';
+        });
+
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Mobile Shop Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto text-center">
+        <h2>{{ title }}</h2>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Supplier Name *</label>
+                        <input type="text" name="name" class="form-control" value="{{ supplier.name if supplier else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Company *</label>
+                        <input type="text" name="company" class="form-control" value="{{ supplier.company if supplier else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Phone *</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ supplier.phone if supplier else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ supplier.email if supplier else '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea name="address" class="form-control" rows="3">{{ supplier.address if supplier else '' }}</textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">City</label>
+                            <input type="text" name="city" class="form-control" value="{{ supplier.city if supplier else '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">State</label>
+                            <input type="text" name="state" class="form-control" value="{{ supplier.state if supplier else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Postal Code</label>
+                        <input type="text" name="postal_code" class="form-control" value="{{ supplier.postal_code if supplier else '' }}">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Save Supplier</button>
+                        <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-outline-secondary btn-back">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Create Purchase - Mobile Shop Management{% endblock %}
+{% block extra_css %}
+<style>
+    .purchase-form-col {
+        position: relative;
+        z-index: 3;
+    }
+    .purchase-summary-card {
+        z-index: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>Create New Purchase</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 purchase-form-col">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Purchase Order</h5>
+            </div>
+            <div class="card-body">
+                <form id="purchaseForm">
+                    <div class="mb-3">
+                        <label class="form-label">Supplier *</label>
+                        <select id="supplierId" class="form-select" required>
+                            <option value="">Select a supplier...</option>
+                            {% for supplier in suppliers %}
+                                <option value="{{ supplier.id }}">{{ supplier.name }} ({{ supplier.company }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Product Details *</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <input type="text" id="newName" class="form-control" placeholder="Product Name">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" id="newBrand" class="form-control" placeholder="Brand">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <input type="text" id="newModel" class="form-control" placeholder="Model">
+                            </div>
+                            <div class="col-md-6">
+                                <select id="newCategory" class="form-select">
+                                    <option value="">Category...</option>
+                                    <option value="mobile">Mobile</option>
+                                    <option value="accessory">Accessory</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-4">
+                                <input type="number" id="newCostPrice" class="form-control" placeholder="Cost Price" min="0" step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" id="newSellingPrice" class="form-control" placeholder="Selling Price" min="0" step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="number" id="newQty" class="form-control" placeholder="Qty" min="1" value="1">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <input type="text" id="newBarcode" class="form-control" placeholder="Barcode / QR (optional)">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" id="newImei" class="form-control" placeholder="IMEI (optional)">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <input type="file" id="newImageFile" class="form-control" accept="image/*">
+                        </div>
+                        <textarea id="newDescription" class="form-control mb-2" rows="2" placeholder="Description (optional)"></textarea>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="addNewPendingBtn">Add Product Item</button>
+                        <small class="d-block text-muted mt-2">Purchased item will stay Catalog Pending until manually added from Products page.</small>
+                    </div>
+
+                    <div id="purchaseItems" class="mb-3">
+                        <h6>Purchase Items</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Cost Price</th>
+                                        <th>Qty</th>
+                                        <th>Subtotal</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsList">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-3">No items added</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Status</label>
+                        <select id="paymentStatus" class="form-select">
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="partial">Partial</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea id="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card sticky-top purchase-summary-card" style="top: 20px;">
+            <div class="card-header">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total Items:</span>
+                        <strong id="totalItems">0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="h5">Total Amount:</span>
+                        <strong class="h5" id="total">$0.00</strong>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success btn-lg" onclick="completePurchase()">
+                        <i class="bi bi-check-circle"></i> Create Purchase
+                    </button>
+                    <a href="{{ url_for('purchases.list_purchases') }}" class="btn btn-outline-secondary btn-back">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let items = [];
+    const apiToken = "{{ api_token }}";
+    const csrfToken = getCsrfToken();
+
+    function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('Failed to read image file'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function addNewPendingProduct() {
+        const name = document.getElementById('newName').value.trim();
+        const brand = document.getElementById('newBrand').value.trim();
+        const model = document.getElementById('newModel').value.trim();
+        const category = document.getElementById('newCategory').value;
+        const costPrice = parseFloat(document.getElementById('newCostPrice').value || '0');
+        const sellingPrice = parseFloat(document.getElementById('newSellingPrice').value || '0');
+        const qty = parseInt(document.getElementById('newQty').value || '1');
+        const barcode = document.getElementById('newBarcode').value.trim();
+        const imei = document.getElementById('newImei').value.trim();
+        const description = document.getElementById('newDescription').value.trim();
+        const imageFile = document.getElementById('newImageFile').files[0];
+
+        if (!name || !brand || !model || !category || costPrice <= 0 || qty <= 0) {
+            showNotification('Please fill Name, Brand, Model, Category, Cost Price, and Quantity.', 'warning');
+            return;
+        }
+
+        let imageData = '';
+        if (imageFile) {
+            imageData = await readFileAsDataUrl(imageFile);
+        }
+
+        const key = `${name.toLowerCase()}|${brand.toLowerCase()}|${model.toLowerCase()}|${category.toLowerCase()}|${(barcode || '').toLowerCase()}|${(imei || '').toLowerCase()}`;
+        const existingIndex = items.findIndex(item =>
+            item.type === 'new' &&
+            item.match_key === key
+        );
+
+        if (existingIndex >= 0) {
+            items[existingIndex].quantity += qty;
+            items[existingIndex].cost_price = costPrice;
+            items[existingIndex].new_product.price = sellingPrice > 0 ? sellingPrice : (costPrice * 1.2);
+            items[existingIndex].new_product.description = description || items[existingIndex].new_product.description;
+            if (imageData) {
+                items[existingIndex].new_product.image_data = imageData;
+            }
+            showNotification('Same product already in list. Quantity updated.', 'success');
+        } else {
+            items.push({
+                type: 'new',
+                match_key: key,
+                name: `${name} (${brand} ${model})`,
+                cost_price: costPrice,
+                quantity: qty,
+                new_product: {
+                    name: name,
+                    brand: brand,
+                    model: model,
+                    category: category,
+                    price: sellingPrice > 0 ? sellingPrice : (costPrice * 1.2),
+                    barcode: barcode,
+                    imei: imei,
+                    image_data: imageData,
+                    description: description
+                }
+            });
+        }
+
+        document.getElementById('newName').value = '';
+        document.getElementById('newBrand').value = '';
+        document.getElementById('newModel').value = '';
+        document.getElementById('newCategory').value = '';
+        document.getElementById('newCostPrice').value = '';
+        document.getElementById('newSellingPrice').value = '';
+        document.getElementById('newQty').value = '1';
+        document.getElementById('newBarcode').value = '';
+        document.getElementById('newImei').value = '';
+        document.getElementById('newImageFile').value = '';
+        document.getElementById('newDescription').value = '';
+        renderItems();
+    }
+
+    document.getElementById('addNewPendingBtn').addEventListener('click', function () {
+        addNewPendingProduct().catch(e => showNotification('Image upload error: ' + e.message, 'error'));
+    });
+
+    function removeItem(itemIndex) {
+        items.splice(itemIndex, 1);
+        renderItems();
+    }
+
+    function updateQuantity(itemIndex, qty) {
+        const item = items[itemIndex];
+        if (item) {
+            item.quantity = Math.max(1, parseInt(qty));
+            renderItems();
+        }
+    }
+
+    function renderItems() {
+        const tbody = document.getElementById('itemsList');
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No items added</td></tr>';
+        } else {
+            tbody.innerHTML = items.map((item, index) => `
+                <tr>
+                    <td>
+                        ${item.name}
+                        ${item.type === 'new' ? '<span class="badge bg-warning text-dark ms-2">Catalog Pending</span>' : ''}
+                    </td>
+                    <td>$${item.cost_price.toFixed(2)}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" style="width: 60px;" 
+                               value="${item.quantity}" min="1"
+                               onchange="updateQuantity(${index}, this.value)">
+                    </td>
+                    <td>$${(item.cost_price * item.quantity).toFixed(2)}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(${index})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        updateTotals();
+    }
+
+    function updateTotals() {
+        const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+        const total = items.reduce((sum, item) => sum + (item.cost_price * item.quantity), 0);
+
+        document.getElementById('totalItems').textContent = totalItems;
+        document.getElementById('total').textContent = '$' + total.toFixed(2);
+    }
+
+    function completePurchase() {
+        const supplierId = document.getElementById('supplierId').value;
+        if (!supplierId) {
+            showNotification('Please select a supplier.', 'warning');
+            return;
+        }
+
+        if (items.length === 0) {
+            showNotification('Please add at least one item.', 'warning');
+            return;
+        }
+
+        const purchaseData = {
+            supplier_id: parseInt(supplierId),
+            items: items
+                .filter(item => item.type === 'new')
+                .map(item => ({
+                    quantity: item.quantity,
+                    cost_price: item.cost_price,
+                    new_product: item.new_product
+                })),
+            payment_status: document.getElementById('paymentStatus').value,
+            notes: document.getElementById('notes').value
+        };
+
+        fetch('{{ url_for("purchases.create_purchase") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-Token': apiToken,
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(purchaseData)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                showNotification('Error: ' + data.error, 'error');
+            } else {
+                window.location.href = data.redirect;
+            }
+        })
+        .catch(e => showNotification('Error: ' + e, 'error'));
+    }
+</script>
+{% endblock %}

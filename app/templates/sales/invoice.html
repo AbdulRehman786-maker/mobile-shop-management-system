@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice #{{ sale.id }} - AR Mobile Shop{% endblock %}
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        body {
+            background: #fff !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4 no-print">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Invoice #{{ sale.id }}</h2>
+            <div>
+                <a href="{{ url_for('sales.generate_pdf', sale_id=sale.id) }}" class="btn btn-success">
+                    <i class="bi bi-file-earmark-pdf"></i> Print / Save PDF
+                </a>
+                <a href="{{ url_for('sales.list_sales') }}" class="btn btn-outline-secondary btn-back">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-5">
+        <!-- Header -->
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <h3 class="mb-0">INVOICE</h3>
+                <p class="text-muted">AR Mobile Shop</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <p class="mb-1"><strong>Invoice #:</strong> {{ sale.id }}</p>
+                <p class="mb-1"><strong>Date:</strong> {{ sale.sale_date.strftime('%B %d, %Y') }}</p>
+                <p class="mb-0"><strong>Time:</strong> {{ sale.sale_date.strftime('%H:%M:%S') }}</p>
+            </div>
+        </div>
+
+        <!-- Customer & Staff Info -->
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <h6 class="text-uppercase text-muted mb-2">Bill To</h6>
+                <p class="mb-1"><strong>{{ sale.customer.name }}</strong></p>
+                <p class="mb-1">Phone: {{ sale.customer.phone }}</p>
+                {% if sale.customer.email %}
+                    <p class="mb-0">Email: {{ sale.customer.email }}</p>
+                {% endif %}
+                {% if sale.customer.address %}
+                    <p class="mb-0">{{ sale.customer.address }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-uppercase text-muted mb-2">From</h6>
+                <p class="mb-1"><strong>AR Mobile Shop</strong></p>
+                <p class="mb-1">Staff: {{ sale.staff.name }}</p>
+                <p class="mb-0">Payment: {{ sale.payment_method|upper }}</p>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-center" style="width: 80px;">Quantity</th>
+                        <th class="text-end" style="width: 100px;">Unit Price</th>
+                        <th class="text-end" style="width: 100px;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sale.sale_items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td class="text-center">{{ item.quantity }}</td>
+                            <td class="text-end">${{ item.price_cents | money }}</td>
+                            <td class="text-end">${{ item.subtotal_cents | money }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totals -->
+        <div class="row mb-4">
+            <div class="col-md-6 offset-md-6">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Subtotal:</strong></td>
+                        <td class="text-end"><strong>${{ sale.sale_items|map(attribute='subtotal_cents')|sum | money }}</strong></td>
+                    </tr>
+                    {% if sale.discount_cents > 0 %}
+                        <tr>
+                            <td><strong>Discount:</strong></td>
+                            <td class="text-end"><strong>-${{ sale.discount_cents | money }}</strong></td>
+                        </tr>
+                    {% endif %}
+                    {% if sale.tax_cents > 0 %}
+                        <tr>
+                            <td><strong>Tax:</strong></td>
+                            <td class="text-end"><strong>+${{ sale.tax_cents | money }}</strong></td>
+                        </tr>
+                    {% endif %}
+                    <tr class="table-active">
+                        <td><h5 class="mb-0">Total Amount:</h5></td>
+                        <td class="text-end"><h5 class="mb-0">${{ sale.total_amount_cents | money }}</h5></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        {% if sale.notes %}
+            <div class="border-top pt-3">
+                <h6 class="text-uppercase text-muted mb-2">Notes</h6>
+                <p>{{ sale.notes }}</p>
+            </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="border-top pt-3 mt-5 text-center text-muted">
+            <p class="mb-0">Thank you for your business!</p>
+            <p class="mb-0 small">This is a computer-generated invoice. No signature is required.</p>
+        </div>
+    </div>
+</div>
+{% if print_mode %}
+<script>
+    window.addEventListener('load', function () {
+        window.print();
+    });
+</script>
+{% endif %}
+{% endblock %}
