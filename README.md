@@ -6,6 +6,20 @@ Flask-based sales and inventory management system for a mobile shop. The app man
 
 AR Mobile Shop is a modular Flask application built to manage a mobile retail business end to end. It covers sales, purchases, stock tracking, customer records, supplier management, role-based access, and operational reporting in a single system.
 
+## Live Demo
+
+- Live Render URL: `https://ar-mobile-shop.onrender.com`
+- Free Render note: after opening the link, wait around `20 to 40 seconds` if the service was sleeping due to inactivity.
+
+### Demo Credentials
+
+- Admin
+  - Email: `admin@armobileshop.com`
+  - Password: `Admin@12345`
+- Staff
+  - Email: `staff@armobileshop.com`
+  - Password: `Staff@12345`
+
 ## Highlights
 
 - Role-based authentication for `admin` and `staff`
@@ -106,13 +120,13 @@ DATABASE_URL=postgresql://username:password@host:5432/database_name
 ### 4. Run migrations
 
 ```powershell
-flask db upgrade
+python -m flask --app run db upgrade
 ```
 
 ### 5. Optional: bootstrap admin and staff accounts
 
 ```powershell
-flask init-db
+python -m flask --app run init-db
 ```
 
 If `ADMIN_PASSWORD` or `STAFF_PASSWORD` are not set, the command generates random passwords and prints them in the terminal.
@@ -124,7 +138,7 @@ $env:ADMIN_EMAIL="admin@example.com"
 $env:ADMIN_PASSWORD="ChangeThisPassword"
 $env:STAFF_EMAIL="staff@example.com"
 $env:STAFF_PASSWORD="ChangeThisToo"
-flask init-db
+python -m flask --app run init-db
 ```
 
 ### 6. Run the application
@@ -214,6 +228,10 @@ Free Render note:
 
 ![Staff Dashboard](docs/screenshots/dashboard-staff.png)
 
+### Login Page
+
+![Login Page](docs/screenshots/login-page.png)
+
 ### Products
 
 ![Products List](docs/screenshots/products-list.png)
@@ -230,9 +248,13 @@ Free Render note:
 
 ![Create Sale](docs/screenshots/sales-create.png)
 
-### Sale Item Flow
+### Purchases
 
-![Sale Items](docs/screenshots/sales-items.png)
+![Purchase List](docs/screenshots/purchase-list.png)
+
+### Supplier Form
+
+![Supplier Form](docs/screenshots/supplier-form.png)
 
 ## Security Notes
 
@@ -251,6 +273,10 @@ Before pushing publicly, make sure these are not committed:
 - `app/static/uploads/` if they contain private or local-only media
 
 ## Troubleshooting
+
+### Render app opens slowly
+
+This project is deployed on the free Render plan. If the app has been idle, the first request can take `20 to 40 seconds` while the service wakes up.
 
 ### `SECRET_KEY must be set in production`
 

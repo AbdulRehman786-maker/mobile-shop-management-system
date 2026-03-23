@@ -3,15 +3,18 @@
 {% block title %}Dashboard - AR Mobile Shop{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-    <div>
-        <h2 class="mb-1">Dashboard</h2>
-        <p class="text-muted mb-0">Overview of sales, customers, suppliers, and stock status.</p>
+<section class="page-hero mb-4">
+    <div class="page-hero__content">
+        <span class="page-kicker">Overview</span>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Track revenue, inventory pressure, and recent activity from one place.</p>
     </div>
-    <a href="{{ url_for('sales.create_sale') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> New Sale
-    </a>
-</div>
+    <div class="page-hero__actions">
+        <a href="{{ url_for('sales.create_sale') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> New Sale
+        </a>
+    </div>
+</section>
 
 <div class="row g-4 mb-4">
     <div class="col-md-6 col-xl-3">
@@ -54,18 +57,20 @@
 
 <div class="row g-4 mb-4">
     <div class="col-md-6">
-        <div class="card h-100">
+        <div class="card metric-card h-100">
             <div class="card-body">
                 <p class="text-muted small mb-2">Revenue Today</p>
-                <h3 class="mb-0">${{ "%.2f"|format((day_revenue_cents or 0) / 100) }}</h3>
+                <h3 class="mb-1">${{ "%.2f"|format((day_revenue_cents or 0) / 100) }}</h3>
+                <p class="metric-note mb-0">Live daily performance snapshot based on recorded sales.</p>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card h-100">
+        <div class="card metric-card h-100">
             <div class="card-body">
                 <p class="text-muted small mb-2">Revenue This Month</p>
-                <h3 class="mb-0">${{ "%.2f"|format((month_revenue_cents or 0) / 100) }}</h3>
+                <h3 class="mb-1">${{ "%.2f"|format((month_revenue_cents or 0) / 100) }}</h3>
+                <p class="metric-note mb-0">Monthly revenue total for the current reporting period.</p>
             </div>
         </div>
     </div>
@@ -73,7 +78,7 @@
 
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
-        <div class="card h-100">
+        <div class="card section-card h-100">
             <div class="card-header bg-white">
                 <h5 class="mb-0">Low Stock Products</h5>
             </div>
@@ -111,7 +116,7 @@
     </div>
 
     <div class="col-lg-6">
-        <div class="card h-100">
+        <div class="card section-card h-100">
             <div class="card-header bg-white">
                 <h5 class="mb-0">Recent Sales</h5>
             </div>
@@ -147,10 +152,12 @@
     </div>
 </div>
 
-<div class="card chart-card">
+<div class="card chart-card section-card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Daily Sales Chart</h5>
-        <span class="text-muted small">Last 30 days</span>
+        <div>
+            <h5 class="mb-1">Daily Sales Chart</h5>
+            <p class="text-muted small mb-0">Last 30 days</p>
+        </div>
     </div>
     <div class="card-body">
         <canvas id="salesChart" height="110"></canvas>

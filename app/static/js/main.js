@@ -58,16 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Format currency
- */
-function formatCurrency(value) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-    }).format(value);
-}
-
-/**
  * CSRF helpers
  */
 function getCsrfToken() {
@@ -83,30 +73,6 @@ function appendCsrfToken(form) {
     input.name = 'csrf_token';
     input.value = token;
     form.appendChild(input);
-}
-
-/**
- * Format date
- */
-function formatDate(date) {
-    return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    }).format(new Date(date));
-}
-
-/**
- * Show loading state on button
- */
-function setButtonLoading(button, loading = true) {
-    if (loading) {
-        button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
-    } else {
-        button.disabled = false;
-        button.innerHTML = button.dataset.originalText || 'Submit';
-    }
 }
 
 /**
@@ -149,21 +115,6 @@ function confirmAction({
 }
 
 /**
- * Debounce function
- */
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-/**
  * Fetch with error handling
  */
 async function fetchWithErrorHandling(url, options = {}) {
@@ -187,38 +138,6 @@ async function fetchWithErrorHandling(url, options = {}) {
     }
 }
 
-/**
- * Export table to CSV
- */
-function exportTableToCSV(filename) {
-    const csv = [];
-    const rows = document.querySelectorAll('table tr');
-
-    for (let i = 0; i < rows.length; i++) {
-        const row = [], cols = rows[i].querySelectorAll('td, th');
-
-        for (let j = 0; j < cols.length; j++) {
-            row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
-        }
-
-        csv.push(row.join(','));
-    }
-
-    downloadCSV(csv.join('\n'), filename);
-}
-
-/**
- * Download CSV
- */
-function downloadCSV(csv, filename) {
-    const csvFile = new Blob([csv], { type: 'text/csv' });
-    const downloadLink = document.createElement('a');
-    downloadLink.href = URL.createObjectURL(csvFile);
-    downloadLink.download = filename;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-}
 
 /**
  * Print element

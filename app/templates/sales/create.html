@@ -3,15 +3,17 @@
 {% block title %}Create Sale - Mobile Shop Management{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h2>Create New Sale</h2>
+<section class="page-hero mb-4">
+    <div class="page-hero__content">
+        <span class="page-kicker">Transactions</span>
+        <h1 class="page-title">Create New Sale</h1>
+        <p class="page-subtitle">Build an invoice, add in-stock products quickly, and complete checkout with a clean order summary.</p>
     </div>
-</div>
+</section>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-4">
+<div class="row g-4">
+    <div class="col-xl-8">
+        <div class="card form-card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Sale Details</h5>
             </div>
@@ -34,6 +36,9 @@
                             <button class="btn btn-outline-secondary" type="button" id="addProductBtn">Add</button>
                         </div>
                         <datalist id="productOptions"></datalist>
+                        <div class="helper-note mt-3">
+                            Type the product name, brand, model, or barcode. Select the suggested item, then add it to the invoice list below.
+                        </div>
                     </div>
 
                     <div id="saleItems" class="mb-3">
@@ -90,12 +95,15 @@
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card sticky-top" style="top: 20px;">
+    <div class="col-xl-4">
+        <div class="card summary-card sticky-top" style="top: 20px;">
             <div class="card-header">
                 <h5 class="mb-0">Order Summary</h5>
             </div>
             <div class="card-body">
+                <div class="helper-note mb-3">
+                    Review subtotal, discount, and tax before confirming the invoice. The total updates automatically as quantities change.
+                </div>
                 <div class="mb-3">
                     <div class="d-flex justify-content-between mb-2">
                         <span>Subtotal:</span>

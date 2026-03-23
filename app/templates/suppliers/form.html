@@ -3,15 +3,17 @@
 {% block title %}{{ title }} - Mobile Shop Management{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8 mx-auto text-center">
-        <h2>{{ title }}</h2>
+<section class="page-hero mb-4">
+    <div class="page-hero__content">
+        <span class="page-kicker">Suppliers</span>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">Keep supplier records complete so procurement, payment follow-up, and purchase tracking stay clean.</p>
     </div>
-</div>
+</section>
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card">
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-7">
+        <div class="card form-card">
             <div class="card-body">
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -63,6 +65,29 @@
                         </a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card info-card h-100">
+            <div class="card-body">
+                <span class="page-kicker">Procurement Notes</span>
+                <h4 class="mb-3">A strong supplier profile improves purchase workflows.</h4>
+                <div class="info-list">
+                    <div class="info-list__item">
+                        <strong>Use the business name clearly</strong>
+                        <span>This makes purchase history and supplier performance easier to review later.</span>
+                    </div>
+                    <div class="info-list__item">
+                        <strong>Keep one main contact number</strong>
+                        <span>Reliable contact details reduce procurement delays during repeat ordering.</span>
+                    </div>
+                    <div class="info-list__item">
+                        <strong>Store full address details</strong>
+                        <span>Useful for invoices, shipment coordination, and future supplier comparisons.</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

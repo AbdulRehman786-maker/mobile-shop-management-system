@@ -3,15 +3,17 @@
 {% block title %}{{ title }} - Mobile Shop Management{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h2>{{ title }}</h2>
+<section class="page-hero mb-4">
+    <div class="page-hero__content">
+        <span class="page-kicker">Customers</span>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">Maintain complete customer records with contact details, location, and communication-ready information.</p>
     </div>
-</div>
+</section>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card form-card">
             <div class="card-body">
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -59,6 +61,29 @@
                         </a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card info-card h-100">
+            <div class="card-body">
+                <span class="page-kicker">Guidance</span>
+                <h4 class="mb-3">Keep records ready for sales follow-up.</h4>
+                <div class="info-list">
+                    <div class="info-list__item">
+                        <strong>Use an active phone number</strong>
+                        <span>Customer search and sale history are easier to manage when the phone number is consistent.</span>
+                    </div>
+                    <div class="info-list__item">
+                        <strong>Email is optional but useful</strong>
+                        <span>Add it when available so invoices and future communication stay organized.</span>
+                    </div>
+                    <div class="info-list__item">
+                        <strong>Capture city and address cleanly</strong>
+                        <span>Location details help when reviewing regional demand and repeat buyers later.</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

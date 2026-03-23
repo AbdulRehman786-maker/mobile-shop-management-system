@@ -3,57 +3,83 @@
 {% block title %}Login - Mobile Shop Management{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-lg">
-                <div class="card-body p-5">
-                    <h2 class="card-title text-center mb-4">
-                        <i class="bi bi-shop"></i> Mobile Shop
-                    </h2>
-                    <h5 class="text-center text-muted mb-4">Login to Your Account</h5>
+<section class="auth-shell">
+    <div class="auth-panel auth-panel--intro">
+        <span class="page-kicker">AR Mobile Shop</span>
+        <h1 class="page-title">Retail operations with a cleaner, smarter workflow.</h1>
+        <p class="page-subtitle">Sign in to manage inventory, sales, purchases, and customer records from one professional control panel.</p>
+        <div class="helper-note mb-4">
+            Use your assigned admin or staff account to continue. Admin handles catalog control, supplier setup, reporting, and staff access, while staff focuses on everyday sales work.
+        </div>
 
-                    <form method="POST" novalidate>
-                        {{ form.hidden_tag() }}
-
-                        <div class="mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {% if form.email.errors %}
-                                {{ form.email(class="form-control is-invalid") }}
-                                <div class="invalid-feedback">
-                                    {% for error in form.email.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                {{ form.email(class="form-control") }}
-                            {% endif %}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form.password.label(class="form-label") }}
-                            {% if form.password.errors %}
-                                {{ form.password(class="form-control is-invalid") }}
-                                <div class="invalid-feedback">
-                                    {% for error in form.password.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                {{ form.password(class="form-control") }}
-                            {% endif %}
-                        </div>
-
-                        <div class="d-grid">
-                            {{ form.submit(class="btn btn-primary btn-lg") }}
-                        </div>
-                    </form>
-
-                    <hr class="my-4">
-                    <p class="text-center text-muted mb-0">Contact admin for staff account creation.</p>
-                </div>
+        <div class="auth-feature-list">
+            <div class="auth-feature-item">
+                <strong>Fast daily operations</strong>
+                <span>Create sales, review stock, and manage customers without clutter.</span>
+            </div>
+            <div class="auth-feature-item">
+                <strong>Admin and staff roles</strong>
+                <span>Keep permissions structured so the right people control the right work.</span>
+            </div>
+            <div class="auth-feature-item">
+                <strong>Built for mobile retail</strong>
+                <span>Products, procurement, suppliers, and sales stay connected in one system.</span>
             </div>
         </div>
     </div>
-</div>
+
+    <div class="auth-panel auth-panel--form">
+        <div class="card auth-card">
+            <div class="card-body p-4 p-lg-5">
+                <div class="auth-card__brand mb-4">
+                    <div class="auth-brand-icon">
+                        <i class="bi bi-phone"></i>
+                    </div>
+                    <div>
+                        <h2 class="mb-1">Welcome back</h2>
+                        <p class="text-muted mb-0">Login to continue to your workspace.</p>
+                    </div>
+                </div>
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {% if form.email.errors %}
+                            {{ form.email(class="form-control is-invalid", placeholder="Enter your email") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.email(class="form-control", placeholder="Enter your email") }}
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form.password.label(class="form-label") }}
+                        {% if form.password.errors %}
+                            {{ form.password(class="form-control is-invalid", placeholder="Enter your password") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.password(class="form-control", placeholder="Enter your password") }}
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+
+                <p class="auth-note mt-4 mb-0">Staff accounts are created and managed by admin only.</p>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}

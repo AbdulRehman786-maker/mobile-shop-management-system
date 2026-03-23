@@ -14,15 +14,17 @@
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h2>Create New Purchase</h2>
+<section class="page-hero mb-4">
+    <div class="page-hero__content">
+        <span class="page-kicker">Procurement</span>
+        <h1 class="page-title">Create New Purchase</h1>
+        <p class="page-subtitle">Record incoming stock professionally with supplier details, product specs, and a clean purchase summary.</p>
     </div>
-</div>
+</section>
 
-<div class="row">
-    <div class="col-md-8 purchase-form-col">
-        <div class="card mb-4">
+<div class="row g-4">
+    <div class="col-xl-8 purchase-form-col">
+        <div class="card form-card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Purchase Order</h5>
             </div>
@@ -85,6 +87,9 @@
                         <textarea id="newDescription" class="form-control mb-2" rows="2" placeholder="Description (optional)"></textarea>
                         <button type="button" class="btn btn-outline-primary btn-sm" id="addNewPendingBtn">Add Product Item</button>
                         <small class="d-block text-muted mt-2">Purchased item will stay Catalog Pending until manually added from Products page.</small>
+                        <div class="helper-note mt-3">
+                            Add one item at a time with its brand, model, prices, and quantity so incoming stock stays traceable before catalog approval.
+                        </div>
                     </div>
 
                     <div id="purchaseItems" class="mb-3">
@@ -127,12 +132,15 @@
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card sticky-top purchase-summary-card" style="top: 20px;">
+    <div class="col-xl-4">
+        <div class="card summary-card sticky-top purchase-summary-card" style="top: 20px;">
             <div class="card-header">
                 <h5 class="mb-0">Order Summary</h5>
             </div>
             <div class="card-body">
+                <div class="helper-note mb-3">
+                    Check total quantity and amount here before finalizing the purchase order for the selected supplier.
+                </div>
                 <div class="mb-3">
                     <div class="d-flex justify-content-between mb-2">
                         <span>Total Items:</span>

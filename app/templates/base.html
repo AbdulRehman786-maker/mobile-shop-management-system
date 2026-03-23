@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AR Mobile Shop{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -12,26 +15,33 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    {% set current_endpoint = request.endpoint or '' %}
+    {% set is_dashboard_page = current_endpoint == 'dashboard.index' %}
+    {% set is_sales_page = current_endpoint.startswith('sales.') %}
+    {% set is_customers_page = current_endpoint.startswith('customers.') %}
+    {% set is_products_page = current_endpoint.startswith('products.') %}
+    {% set is_admin_page = current_endpoint.startswith('suppliers.') or current_endpoint.startswith('purchases.') or current_endpoint == 'auth.register' or current_endpoint.startswith('dashboard.reports') %}
+
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top app-navbar">
+    <nav class="navbar navbar-expand-lg sticky-top app-navbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
                 <i class="bi bi-shop"></i> AR Mobile Shop
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                            <a class="nav-link {% if is_dashboard_page %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
                                 <i class="bi bi-speedometer2"></i> Dashboard
                             </a>
                         </li>
                         {% if current_user.is_staff() %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="salesDropdown" role="button" data-bs-toggle="dropdown">
+                                <a class="nav-link dropdown-toggle {% if is_sales_page %}active{% endif %}" href="#" id="salesDropdown" role="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-cart-check"></i> Sales
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="salesDropdown">
@@ -40,19 +50,19 @@
                                 </ul>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('customers.list_customers') }}">
+                                <a class="nav-link {% if is_customers_page %}active{% endif %}" href="{{ url_for('customers.list_customers') }}">
                                     <i class="bi bi-people"></i> Customers
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('products.list_products') }}">
+                                <a class="nav-link {% if is_products_page %}active{% endif %}" href="{{ url_for('products.list_products') }}">
                                     <i class="bi bi-box"></i> Products
                                 </a>
                             </li>
                         {% endif %}
                         {% if current_user.is_admin() %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                                <a class="nav-link dropdown-toggle {% if is_admin_page %}active{% endif %}" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-gear"></i> Admin
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="adminDropdown">
