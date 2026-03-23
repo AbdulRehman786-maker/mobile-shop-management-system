@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from dotenv import load_dotenv
 from sqlalchemy import MetaData, create_engine, text
@@ -33,6 +34,11 @@ TABLE_ORDER = [
 
 
 def _normalize_postgres_url(url: str) -> str:
+    split = urlsplit(url)
+    query = [(key, value) for key, value in parse_qsl(split.query, keep_blank_values=True) if key not in {"sslmode", "channel_binding"}]
+    cleaned_url = urlunsplit((split.scheme, split.netloc, split.path, urlencode(query), split.fragment))
+
+    url = cleaned_url
     if url.startswith("postgresql://"):
         return url.replace("postgresql://", "postgresql+pg8000://", 1)
     if url.startswith("postgres://"):
