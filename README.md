@@ -151,12 +151,17 @@ Recommended Render settings:
   - `FLASK_ENV=production`
   - `SECRET_KEY=<strong-random-value>`
   - `DATABASE_URL=<your-postgresql-url>`
+  - `BOOTSTRAP_ADMIN_EMAIL=<admin-login-email>`
+  - `BOOTSTRAP_ADMIN_PASSWORD=<admin-login-password>`
+  - `BOOTSTRAP_STAFF_EMAIL=<staff-login-email>`
+  - `BOOTSTRAP_STAFF_PASSWORD=<staff-login-password>`
 
 Free Render note:
 
 - the web service sleeps when idle
 - local file storage is ephemeral
 - use PostgreSQL instead of SQLite for better data persistence on hosted environments
+- free plans do not provide Shell access, so initial admin/staff users can be bootstrapped from the environment variables above
 
 ## Main Modules
 

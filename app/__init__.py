@@ -80,6 +80,7 @@ def create_app(config_name=None):
     # Development-only safety: normalize roles (schema should be managed via migrations).
     with app.app_context():
         _normalize_user_roles()
+        _bootstrap_initial_users()
     
     return app
 
@@ -94,3 +95,35 @@ def _normalize_user_roles():
         text("UPDATE users SET role = 'staff' WHERE role IS NULL OR role NOT IN ('admin','staff')")
     )
     db.session.commit()
+
+
+def _bootstrap_initial_users():
+    """Create initial admin/staff users from environment variables on first deploy."""
+    inspector = inspect(db.engine)
+    if not inspector.has_table('users'):
+        return
+
+    from app.models import User
+
+    admin_email = os.environ.get('BOOTSTRAP_ADMIN_EMAIL') or os.environ.get('ADMIN_EMAIL')
+    admin_password = os.environ.get('BOOTSTRAP_ADMIN_PASSWORD') or os.environ.get('ADMIN_PASSWORD')
+    staff_email = os.environ.get('BOOTSTRAP_STAFF_EMAIL') or os.environ.get('STAFF_EMAIL')
+    staff_password = os.environ.get('BOOTSTRAP_STAFF_PASSWORD') or os.environ.get('STAFF_PASSWORD')
+
+    created = []
+
+    if admin_email and admin_password and not User.query.filter_by(email=admin_email).first():
+        admin = User(name='Admin User', email=admin_email, role='admin')
+        admin.set_password(admin_password)
+        db.session.add(admin)
+        created.append(admin_email)
+
+    if staff_email and staff_password and not User.query.filter_by(email=staff_email).first():
+        staff = User(name='Staff Member', email=staff_email, role='staff')
+        staff.set_password(staff_password)
+        db.session.add(staff)
+        created.append(staff_email)
+
+    if created:
+        db.session.commit()
+        print(f"Bootstrapped users: {', '.join(created)}")

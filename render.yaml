@@ -12,6 +12,14 @@ services:
         generateValue: true
       - key: DATABASE_URL
         sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_STAFF_EMAIL
+        sync: false
+      - key: BOOTSTRAP_STAFF_PASSWORD
+        sync: false
       - key: UPLOAD_FOLDER
         value: app/static/uploads
       - key: MAX_CONTENT_LENGTH
