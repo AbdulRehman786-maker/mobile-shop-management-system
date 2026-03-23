@@ -32,8 +32,12 @@ AR Mobile Shop is a modular Flask application built to manage a mobile retail bu
 
 ## Live Demo
 
-- Live Render URL: `https://ar-mobile-shop.onrender.com`
-- Free Render note: after opening the link, wait around `20 to 40 seconds` if the service was sleeping due to inactivity.
+### Open Live App
+
+[![Live Demo](https://img.shields.io/badge/Open-Live%20Render%20Demo-2F6FED?style=for-the-badge&logo=render&logoColor=white)](https://ar-mobile-shop.onrender.com)
+
+- Live Render URL: **[https://ar-mobile-shop.onrender.com](https://ar-mobile-shop.onrender.com)**
+- Free Render note: after opening the link, wait around **`20 to 40 seconds`** if the service was sleeping due to inactivity.
 
 ### Demo Credentials
 
