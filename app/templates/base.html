@@ -13,7 +13,7 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top app-navbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
                 <i class="bi bi-shop"></i> AR Mobile Shop
@@ -93,12 +93,17 @@
     <script id="flash-messages" type="application/json">{{ flash_messages | tojson }}</script>
 
     <!-- Main Content -->
-    <main class="container-fluid py-4">
-        {% block content %}{% endblock %}
-    </main>
+    <div class="app-background">
+        <div class="app-orb app-orb-one"></div>
+        <div class="app-orb app-orb-two"></div>
+        <div class="app-grid"></div>
+        <main class="container-fluid py-4 app-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-3 mt-5">
+    <footer class="text-white text-center py-3 mt-5 app-footer">
         <div class="container-fluid">
             <p class="mb-0">&copy; 2026 AR Mobile Shop. Created by Abdul Rehman.</p>
         </div>
