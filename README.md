@@ -2,6 +2,30 @@
 
 Flask-based sales and inventory management system for a mobile shop. The app manages products, customers, suppliers, purchases, sales, stock movement, and dashboard reporting.
 
+![Flask](https://img.shields.io/badge/Backend-Flask%203-blue)
+![Database](https://img.shields.io/badge/Database-SQLite%20%2F%20PostgreSQL-lightgrey)
+![Frontend](https://img.shields.io/badge/UI-Bootstrap%205-7952B3)
+![Deploy](https://img.shields.io/badge/Deploy-Render-46E3B7)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+## Table of Contents
+
+- [Portfolio Summary](#portfolio-summary)
+- [Live Demo](#live-demo)
+- [Highlights](#highlights)
+- [Role Access](#role-access)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Setup](#setup)
+- [Render Deployment](#render-deployment)
+- [Main Modules](#main-modules)
+- [Screenshots](#screenshots)
+- [Security Notes](#security-notes)
+- [GitHub Release Notes](#github-release-notes)
+- [Troubleshooting](#troubleshooting)
+- [Portfolio Readiness](#portfolio-readiness)
+- [Contact](#contact)
+
 ## Portfolio Summary
 
 AR Mobile Shop is a modular Flask application built to manage a mobile retail business end to end. It covers sales, purchases, stock tracking, customer records, supplier management, role-based access, and operational reporting in a single system.
@@ -302,3 +326,10 @@ Check that:
 ## Portfolio Readiness
 
 The app is organized as a modular Flask project with clear business domains, role separation, and migrations. The included screenshots make the project easier to review as a portfolio piece.
+
+## Contact
+
+For support, collaboration, or any project-related help:
+
+- Email: `sheikhghazi09@gmail.com`
+- WhatsApp: `+923212454880`
